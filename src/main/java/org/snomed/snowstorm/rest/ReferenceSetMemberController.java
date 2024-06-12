@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 public class ReferenceSetMemberController {
 
 	private static final Sort SORT_BY_MEMBER_ID_DESC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMemberId).descending();
+	private static final Sort SORT_BY_REFERENCED_COMPONENT_ID_ASC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).ascending();
 
 	@Autowired
 	private ReferenceSetMemberService memberService;
@@ -77,7 +78,7 @@ public class ReferenceSetMemberController {
 
 		branch = BranchPathUriUtil.decodePath(branch);
 		List<LanguageDialect> languageDialects = ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader);
-		PageRequest pageRequest = ControllerHelper.getPageRequest(offset, limit, SORT_BY_MEMBER_ID_DESC, searchAfter);
+		PageRequest pageRequest = ControllerHelper.getPageRequest(offset, limit, SORT_BY_REFERENCED_COMPONENT_ID_ASC, searchAfter);
 
 		TimerUtil timer = new TimerUtil("Member aggregation debug " + branch);
 		// Find Reference Sets with aggregation
@@ -163,7 +164,7 @@ public class ReferenceSetMemberController {
 						.owlExpressionGCI(owlExpressionGCI)
 						.includeNonSnomedMapTerms(true)
 				,
-				ControllerHelper.getPageRequest(offset, limit, SORT_BY_MEMBER_ID_DESC, searchAfter)
+				ControllerHelper.getPageRequest(offset, limit, SORT_BY_REFERENCED_COMPONENT_ID_ASC, searchAfter)
 		);
 		joinReferencedComponents(members.getContent(), ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader), branch);
 		return new ItemsPage<>(members);
