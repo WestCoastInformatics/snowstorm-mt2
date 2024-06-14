@@ -59,6 +59,7 @@ public class ReferenceSetMemberController {
 
 	@Autowired
 	private VersionControlHelper versionControlHelper;
+	private static final Sort SORT_BY_REFERENCED_COMPONENT_ID_ASC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).ascending();
 
 	@Operation(description = "Search for reference set ids.")
 	@GetMapping(value = "/browser/{branch}/members")
@@ -184,7 +185,7 @@ public class ReferenceSetMemberController {
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				memberSearchRequest,
-				ControllerHelper.getPageRequest(offset, limit)
+				ControllerHelper.getPageRequest(offset, limit, SORT_BY_REFERENCED_COMPONENT_ID_ASC)
 		);
 		joinReferencedComponents(members.getContent(), ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader), branch);
 		return new ItemsPage<>(members);
