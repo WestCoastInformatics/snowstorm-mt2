@@ -59,7 +59,6 @@ public class ReferenceSetMemberController {
 
 	@Autowired
 	private VersionControlHelper versionControlHelper;
-	private static final Sort SORT_BY_REFERENCED_COMPONENT_ID_ASC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).ascending();
 
 	@Operation(description = "Search for reference set ids.")
 	@GetMapping(value = "/browser/{branch}/members")
