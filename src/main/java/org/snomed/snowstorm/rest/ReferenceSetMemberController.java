@@ -20,6 +20,7 @@ import org.snomed.snowstorm.core.data.services.pojo.MemberSearchRequest;
 import org.snomed.snowstorm.core.data.services.pojo.PageWithBucketAggregations;
 import org.snomed.snowstorm.core.data.services.pojo.RefSetMemberPageWithBucketAggregations;
 import org.snomed.snowstorm.core.pojo.LanguageDialect;
+import org.snomed.snowstorm.core.util.ReferenceSetMemberSort;
 import org.snomed.snowstorm.core.util.TimerUtil;
 import org.snomed.snowstorm.rest.pojo.ItemsPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,6 @@ import java.util.stream.Collectors;
 @Tag(name = "Refset Members", description = "-")
 @RequestMapping(produces = "application/json")
 public class ReferenceSetMemberController {
-
-	private static final Sort SORT_BY_MEMBER_ID_DESC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMemberId).descending();
 
 	@Autowired
 	private ReferenceSetMemberService memberService;
@@ -70,11 +69,16 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "10") int limit,
 			@RequestParam(required = false) String searchAfter,
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
+			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
+			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
+			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
 
 		branch = BranchPathUriUtil.decodePath(branch);
 		List<LanguageDialect> languageDialects = ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader);
-		PageRequest pageRequest = ControllerHelper.getPageRequest(offset, limit, SORT_BY_MEMBER_ID_DESC, searchAfter);
+		Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+		PageRequest pageRequest = ControllerHelper.getPageRequest(offset, limit, sort, searchAfter);
 
 		TimerUtil timer = new TimerUtil("Member aggregation debug " + branch);
 		// Find Reference Sets with aggregation
@@ -145,10 +149,15 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
 		   	@RequestParam(required = false) String searchAfter,
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
+			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
+			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
+			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
+		Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				new MemberSearchRequest()
@@ -163,7 +172,7 @@ public class ReferenceSetMemberController {
 						.owlExpressionGCI(owlExpressionGCI)
 						.includeNonSnomedMapTerms(true)
 				,
-				ControllerHelper.getPageRequest(offset, limit, SORT_BY_MEMBER_ID_DESC, searchAfter)
+				ControllerHelper.getPageRequest(offset, limit, sort, searchAfter)
 		);
 		joinReferencedComponents(members.getContent(), ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader), branch);
 		return new ItemsPage<>(members);
@@ -176,19 +185,23 @@ public class ReferenceSetMemberController {
 			@RequestBody MemberSearchRequest memberSearchRequest,
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
+			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
+			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
+			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
+		Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				memberSearchRequest,
-				ControllerHelper.getPageRequest(offset, limit)
+				ControllerHelper.getPageRequest(offset, limit, sort)
 		);
 		joinReferencedComponents(members.getContent(), ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader), branch);
 		return new ItemsPage<>(members);
 	}
-
 
 	private void joinReferencedComponents(List<ReferenceSetMember> members, List<LanguageDialect> languageDialects, String branch) {
 		Set<String> conceptIds = members.stream().map(ReferenceSetMember::getReferencedComponentId).filter(IdentifierService::isConceptId).collect(Collectors.toSet());
