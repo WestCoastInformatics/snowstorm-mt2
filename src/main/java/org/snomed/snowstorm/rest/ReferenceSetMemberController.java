@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 public class ReferenceSetMemberController {
 
 	private static final Sort SORT_BY_REFERENCED_COMPONENT_ID_ASC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).ascending();
+	
+	private static final EnumSet<ReferenceSetMemberSort.ReferenceSetMemberSortField> SORT_FIELD_SET = EnumSet.allOf(ReferenceSetMemberSort.ReferenceSetMemberSortField.class);
 
 	@Autowired
 	private ReferenceSetMemberService memberService;
@@ -146,7 +149,7 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
 		   	@RequestParam(required = false) String searchAfter,
-			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget', 'referencedComponent.pt.term'.  Default is 'memberId'.")
 			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
 			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
 			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
@@ -182,7 +185,7 @@ public class ReferenceSetMemberController {
 			@RequestBody MemberSearchRequest memberSearchRequest,
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
-			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget', 'referencedComponent.pt.term'.  Default is 'memberId'.")
 			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
 			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
 			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
