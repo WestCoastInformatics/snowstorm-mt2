@@ -10,7 +10,7 @@ public class SortAbstract {
 	 * @param value the value
 	 * @return the sort order
 	 */
-	public static Direction fromString(final String value) {
+	public static Direction directionFromString(final String value) {
 		if (value == null) {
 			throw new IllegalArgumentException("Sort order cannot be null");
 		}
@@ -22,4 +22,5 @@ public class SortAbstract {
 			throw new IllegalArgumentException("Sort order must be either 'asc' or 'desc'");
 		}
 	}
+
 }

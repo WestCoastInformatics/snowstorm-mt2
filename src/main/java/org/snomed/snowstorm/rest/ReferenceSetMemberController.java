@@ -49,8 +49,6 @@ public class ReferenceSetMemberController {
 
 	private static final Sort SORT_BY_REFERENCED_COMPONENT_ID_ASC = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).ascending();
 	
-	private static final EnumSet<ReferenceSetMemberSort.ReferenceSetMemberSortField> SORT_FIELD_SET = EnumSet.allOf(ReferenceSetMemberSort.ReferenceSetMemberSortField.class);
-
 	@Autowired
 	private ReferenceSetMemberService memberService;
 
@@ -157,7 +155,7 @@ public class ReferenceSetMemberController {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
-		Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+		final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				new MemberSearchRequest()
@@ -193,7 +191,7 @@ public class ReferenceSetMemberController {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
-		Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+		final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				memberSearchRequest,

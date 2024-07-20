@@ -11,11 +11,13 @@ import org.springframework.data.domain.Sort.Direction;
  */
 public class ReferenceSetMemberSort extends SortAbstract {
 
-	/** The Constant DEFAULT_SORT_FIELD. */
-	public static final ReferenceSetMemberSortField DEFAULT_SORT_FIELD = ReferenceSetMemberSortField.MEMBER_ID;
-
+	/** The Constant logger. */
 	private final static Logger logger = LoggerFactory.getLogger(ReferenceSetMemberSort.class);
-	
+
+	/** The Constant DEFAULT_SORT. */
+	private static final Sort DEFAULT_SORT = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMemberId)
+			.ascending();
+
 	/**
 	 * The Enum of attributes for sorting.
 	 */
@@ -31,10 +33,7 @@ public class ReferenceSetMemberSort extends SortAbstract {
 		EFFECTIVE_TIME("effectiveTime"),
 
 		/** The map target. */
-		MAP_TARGET("mapTarget"),
-
-		/** The referenced component pt term. */
-		REFERENCED_COMPONENT_PT_TERM("referencedComponent.pt.term");
+		MAP_TARGET("mapTarget");
 
 		/** The field name. */
 		private final String fieldName;
@@ -64,20 +63,15 @@ public class ReferenceSetMemberSort extends SortAbstract {
 	 * @param field     the field
 	 * @param direction the direction
 	 * @return the sort
+	 * @throws Exception the exception
 	 */
-	public static Sort sort(final ReferenceSetMemberSortField field, final Direction direction) {
-		
-		logger.debug("B. Sorting by field {} in direction {}", field, direction);
-		
-		switch (field) {
-		case REFERENCED_COMPONENT_ID:
-			return Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId).by(direction);
-		case EFFECTIVE_TIME:
-			return Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getEffectiveTime).by(direction);
-		case MAP_TARGET:
-			return Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMapTargetCoding).by(direction);
-		default:
-			return Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMemberId).by(direction);
+	public static Sort sort(final ReferenceSetMemberSortField field, final Direction direction) throws Exception {
+
+		try {
+			return Sort.by(direction, field.getFieldName());
+		} catch (Exception e) {
+			logger.error("Error: {}", e.getMessage(), e);
+			throw e;
 		}
 
 	}
@@ -90,39 +84,42 @@ public class ReferenceSetMemberSort extends SortAbstract {
 	 * @return the sort
 	 */
 	public static Sort sort(final String field, final String direction) {
-		validateSortField(field, direction);
 
-		ReferenceSetMemberSortField sortField = null;
+		validateSortParameters(field, direction);
 
-		switch (ReferenceSetMemberSortField.valueOf(field)) {
-		case REFERENCED_COMPONENT_ID:
-			sortField = ReferenceSetMemberSortField.REFERENCED_COMPONENT_ID;
-			break;
-		case EFFECTIVE_TIME:
-			sortField = ReferenceSetMemberSortField.EFFECTIVE_TIME;
-			break;
-		case MAP_TARGET:
-			sortField = ReferenceSetMemberSortField.MAP_TARGET;
-			break;
-		case REFERENCED_COMPONENT_PT_TERM:
-			sortField = ReferenceSetMemberSortField.REFERENCED_COMPONENT_PT_TERM;
-			break;
-		default:
-			sortField = ReferenceSetMemberSortField.MEMBER_ID;
-			break;
+		try {
+			return sort(fromString(field), directionFromString(direction));
+		} catch (final Exception e) {
+			logger.error("Sorting by field {} in direction {}", ReferenceSetMemberSortField.MEMBER_ID, direction, e);
+			return DEFAULT_SORT;
 		}
-		
-		logger.debug("Sorting by field {} in direction {}", field, direction);
 
-		return sort(sortField, fromString(direction));
+	}
+
+	/**
+	 * From string.
+	 *
+	 * @param field the field
+	 * @return the reference set member sort field
+	 */
+	private static ReferenceSetMemberSortField fromString(final String field) {
+
+		for (final ReferenceSetMemberSortField sortField : ReferenceSetMemberSortField.values()) {
+			if (sortField.getFieldName().equals(field)) {
+				return sortField;
+			}
+		}
+		throw new IllegalArgumentException(String
+				.format("Invalid sort field: " + field + " Must be one of " + ReferenceSetMemberSortField.values()));
 	}
 
 	/**
 	 * Validate sort field.
 	 *
-	 * @param field the field
+	 * @param field     the field
+	 * @param direction the direction
 	 */
-	public static void validateSortField(final String field, final String direction) {
+	public static void validateSortParameters(final String field, final String direction) {
 
 		try {
 			Direction.valueOf(direction.toUpperCase());
@@ -130,10 +127,17 @@ public class ReferenceSetMemberSort extends SortAbstract {
 			throw new IllegalArgumentException("Invalid sort direction: " + direction);
 		}
 
-		try {
-			ReferenceSetMemberSortField.valueOf(field);
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("Invalid sort field: " + field);
+		boolean isFieldValid = false;
+		for (final ReferenceSetMemberSortField sortField : ReferenceSetMemberSortField.values()) {
+			if (!isFieldValid && sortField.getFieldName().equals(field)) {
+				isFieldValid = true;
+				continue;
+			}
 		}
+		if (!isFieldValid) {
+			throw new IllegalArgumentException(
+					"Invalid sort field: " + field + " Must be one of " + ReferenceSetMemberSortField.values());
+		}
+
 	}
 }
