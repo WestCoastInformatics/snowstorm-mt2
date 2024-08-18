@@ -148,7 +148,7 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "50") int limit,
 		   	@RequestParam(required = false) String searchAfter,
 			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget', 'referencedComponent.pt.term'.  Default is 'memberId'.")
-			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
+			@RequestParam(name = "sortField", required = false, defaultValue = "referencedComponentId") String sortField,
 			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
 			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
@@ -184,7 +184,7 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
 			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget', 'referencedComponent.pt.term'.  Default is 'memberId'.")
-			@RequestParam(name = "sortField", required = false, defaultValue = "memberId") String sortField,
+			@RequestParam(name = "sortField", required = false, defaultValue = "referencedComponentId") String sortField,
 			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
 			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
