@@ -15,7 +15,7 @@ public class ReferenceSetMemberSort extends SortAbstract {
 	private final static Logger logger = LoggerFactory.getLogger(ReferenceSetMemberSort.class);
 
 	/** The Constant DEFAULT_SORT. */
-	private static final Sort DEFAULT_SORT = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getMemberId)
+	private static final Sort DEFAULT_SORT = Sort.sort(ReferenceSetMember.class).by(ReferenceSetMember::getReferencedComponentId)
 			.ascending();
 
 	/**
