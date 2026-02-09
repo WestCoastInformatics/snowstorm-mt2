@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -182,21 +183,23 @@ public class FHIRConceptService {
 	public Page<FHIRConcept> findConcepts(BoolQuery.Builder fhirConceptQuery, PageRequest pageRequest) {
 		NativeQuery searchQuery = new NativeQueryBuilder()
 				.withQuery(fhirConceptQuery.build()._toQuery())
+				.withSort(Sort.by(FHIRConcept.Fields.CODE))
 				.withPageable(pageRequest)
 				.build();
 		searchQuery.setTrackTotalHits(true);
 		updateQueryWithSearchAfter(searchQuery, pageRequest);
-		return toPage(elasticsearchTemplate.search(searchQuery, FHIRConcept.class), pageRequest);
+		return toPage(elasticsearchOperations.search(searchQuery, FHIRConcept.class), pageRequest);
 	}
 
-	public SearchAfterPage<String> findConceptCodes(BoolQuery.Builder fhirConceptQuery, PageRequest pageRequest) {
+	public SearchAfterPage<String> findConceptCodes(BoolQuery fhirConceptQuery, PageRequest pageRequest) {
 		NativeQuery searchQuery = new NativeQueryBuilder()
-				.withQuery(fhirConceptQuery.build()._toQuery())
+				.withQuery(fhirConceptQuery._toQuery())
+				.withSort(Sort.by(FHIRConcept.Fields.CODE))
 				.withPageable(pageRequest)
 				.build();
 		searchQuery.setTrackTotalHits(true);
 		updateQueryWithSearchAfter(searchQuery, pageRequest);
-		SearchHits<FHIRConcept> searchHits = elasticsearchTemplate.search(searchQuery, FHIRConcept.class);
+		SearchHits<FHIRConcept> searchHits = elasticsearchOperations.search(searchQuery, FHIRConcept.class);
 		return PageHelper.toSearchAfterPage(searchHits, FHIRConcept::getCode, pageRequest);
 	}
 
