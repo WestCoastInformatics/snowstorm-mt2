@@ -331,9 +331,6 @@ public class FHIRValueSetService {
 	private String getUserRef(ValueSet valueSet) {
 		return valueSet.getUrl() != null ? valueSet.getUrl() : "inline value set";
 	}
-	private String getUserRef(ValueSet valueSet) {
-		return valueSet.getUrl() != null ? valueSet.getUrl() : "inline value set";
-	}
 
 	@NotNull
 	private BoolQuery.Builder getFhirConceptQuery(CodeSelectionCriteria codeSelectionCriteria, String termFilter) {
