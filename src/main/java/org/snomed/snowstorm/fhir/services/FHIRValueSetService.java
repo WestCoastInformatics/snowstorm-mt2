@@ -326,6 +326,56 @@ public class FHIRValueSetService {
 				conceptsPage = conceptService.findConcepts(bool().must(fhirConceptQuery._toQuery()), pageRequest);
 			}
 		}
+
+		Map<String, String> idAndVersionToUrl = allInclusionVersions.stream()
+				.collect(Collectors.toMap(FHIRCodeSystemVersion::getId, FHIRCodeSystemVersion::getUrl));
+		ValueSet.ValueSetExpansionComponent expansion = new ValueSet.ValueSetExpansionComponent();
+		expansion.setId(UUID.randomUUID().toString());
+		expansion.setTimestamp(new Date());
+		allInclusionVersions.forEach(codeSystemVersion -> {
+				if (codeSystemVersion.getVersion() != null) {
+					expansion.addParameter(new ValueSet.ValueSetExpansionParameterComponent(new StringType("version"))
+							.setValue(new CanonicalType(codeSystemVersion.getCanonical())));
+				}
+			}
+		);
+
+		expansion.addParameter(new ValueSet.ValueSetExpansionParameterComponent(new StringType("displayLanguage")).setValue(new StringType(displayLanguage)));
+		expansion.setContains(conceptsPage.stream().map(concept -> {
+					ValueSet.ValueSetExpansionContainsComponent component = new ValueSet.ValueSetExpansionContainsComponent()
+							.setSystem(idAndVersionToUrl.get(concept.getCodeSystemVersion()))
+							.setCode(concept.getCode())
+							.setInactiveElement(concept.isActive() ? null : new BooleanType(true))
+							.setDisplay(concept.getDisplay());
+					if (includeDesignations) {
+						for (FHIRDesignation designation : concept.getDesignations()) {
+							ValueSet.ConceptReferenceDesignationComponent designationComponent = new ValueSet.ConceptReferenceDesignationComponent();
+							designationComponent.setLanguage(designation.getLanguage());
+							designationComponent.setUse(designation.getUseCoding());
+							designationComponent.setValue(designation.getValue());
+							component.addDesignation(designationComponent);
+						}
+					}
+					return component;
+		})
+				.collect(Collectors.toList()));
+		expansion.setOffset(conceptsPage.getNumber() * conceptsPage.getSize());
+		expansion.setTotal((int) conceptsPage.getTotalElements());
+		hapiValueSet.setExpansion(expansion);
+
+		if (hapiValueSet.getId() == null) {
+			hapiValueSet.setId(UUID.randomUUID().toString());
+		}
+
+		if (copyright != null) {
+			hapiValueSet.setCopyright(copyright);
+		}
+
+		if (!TRUE.equals(params.getIncludeDefinition())) {
+			hapiValueSet.setCompose(null);
+		}
+
+		return hapiValueSet;
 	}
 
 	private String getUserRef(ValueSet valueSet) {
