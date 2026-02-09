@@ -279,7 +279,8 @@ public class FHIRValueSetService {
 			// FHIR Concept Expansion (non-SNOMED)
 			String sortField = filter != null ? "displayLen" : "code";
 			pageRequest = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.Direction.ASC, sortField);
-			
+			BoolQuery fhirConceptQuery = getFhirConceptQuery(codeSelectionCriteria, filter).build();
+
 			int offsetRequested = (int) pageRequest.getOffset();
 			int limitRequested = (int) (pageRequest.getOffset() + pageRequest.getPageSize());
 
@@ -291,7 +292,6 @@ public class FHIRValueSetService {
 				List<String> allConceptCodes = new ArrayList<>();
 				boolean loadedAll = false;
 				while (allConceptCodes.size() < limitRequested && !loadedAll) {
-					BoolQuery.Builder fhirConceptQuery = getFhirConceptQuery(codeSelectionCriteria, filter);
 					PageRequest largePageRequest;
 					if (previousPage == null) {
 						largePageRequest = PageRequest.of(0, LARGE_PAGE.getPageSize(), pageRequest.getSort());
@@ -314,8 +314,10 @@ public class FHIRValueSetService {
 					conceptsToLoad = new ArrayList<>();
 				}
 				if (!conceptsToLoad.isEmpty()) {
-					fhirConceptQuery.must(termsQuery(FHIRConcept.Fields.CODE, conceptsToLoad));
-					conceptsPage = conceptService.findConcepts(fhirConceptQuery, LARGE_PAGE);
+					BoolQuery.Builder conceptsToLoadQuery = bool()
+							.must(fhirConceptQuery._toQuery())
+							.must(termsQuery(FHIRConcept.Fields.CODE, conceptsToLoad));
+					conceptsPage = conceptService.findConcepts(conceptsToLoadQuery, LARGE_PAGE);
 					conceptsPage = new PageImpl<>(conceptsPage.getContent(), pageRequest, totalResults);
 				} else {
 					conceptsPage = new PageImpl<>(new ArrayList<>(), pageRequest, totalResults);
