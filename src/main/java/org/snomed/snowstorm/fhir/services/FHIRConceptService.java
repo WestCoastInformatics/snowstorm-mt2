@@ -45,7 +45,7 @@ public class FHIRConceptService {
 	private FHIRConceptRepository conceptRepository;
 
 	@Autowired
-	private ElasticsearchOperations elasticsearchTemplate;
+	private ElasticsearchOperations elasticsearchOperations;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
