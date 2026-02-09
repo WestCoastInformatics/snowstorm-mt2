@@ -325,7 +325,8 @@ public class FHIRValueSetService {
 			} else {
 				conceptsPage = conceptService.findConcepts(bool().must(fhirConceptQuery._toQuery()), pageRequest);
 			}
-		}	
+		}
+	}
 
 	private String getUserRef(ValueSet valueSet) {
 		return valueSet.getUrl() != null ? valueSet.getUrl() : "inline value set";
