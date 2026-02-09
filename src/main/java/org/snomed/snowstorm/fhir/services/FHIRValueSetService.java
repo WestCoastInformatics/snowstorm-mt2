@@ -279,8 +279,7 @@ public class FHIRValueSetService {
 			// FHIR Concept Expansion (non-SNOMED)
 			String sortField = filter != null ? "displayLen" : "code";
 			pageRequest = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.Direction.ASC, sortField);
-			BoolQuery.Builder fhirConceptQuery = getFhirConceptQuery(codeSelectionCriteria, filter);
-
+			
 			int offsetRequested = (int) pageRequest.getOffset();
 			int limitRequested = (int) (pageRequest.getOffset() + pageRequest.getPageSize());
 
@@ -292,6 +291,7 @@ public class FHIRValueSetService {
 				List<String> allConceptCodes = new ArrayList<>();
 				boolean loadedAll = false;
 				while (allConceptCodes.size() < limitRequested && !loadedAll) {
+					BoolQuery.Builder fhirConceptQuery = getFhirConceptQuery(codeSelectionCriteria, filter);
 					PageRequest largePageRequest;
 					if (previousPage == null) {
 						largePageRequest = PageRequest.of(0, LARGE_PAGE.getPageSize(), pageRequest.getSort());
