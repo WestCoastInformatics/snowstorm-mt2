@@ -148,13 +148,24 @@ public class ReferenceSetMemberController {
 			@RequestParam(defaultValue = "50") int limit,
 		   	@RequestParam(required = false) String searchAfter,
 			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
-			@RequestParam(name = "sortField", required = false, defaultValue = "referencedComponentId") String sortField,
-			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
-			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
+			@RequestParam(name = "sortField", required = false) String sortField,
+			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.  Default is 'desc'")
+			@RequestParam(name = "sortOrder", required = false) String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
+		
+		// Use dynamic sort only if BOTH sortField and sortOrder are explicitly provided
+		final Sort sort;
+		if (sortField != null && sortOrder != null) {
+			sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+		} else if (sortField != null || sortOrder != null) {
+			throw new IllegalArgumentException("To sort the results, both 'sortField' and 'sortOrder' must be explicitly provided.");
+		} else {
+			sort = SORT_BY_MEMBER_ID_DESC;
+		}		
+		
 		final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
@@ -183,20 +194,32 @@ public class ReferenceSetMemberController {
 			@RequestBody MemberSearchRequest memberSearchRequest,
 			@RequestParam(defaultValue = "0") int offset,
 			@RequestParam(defaultValue = "50") int limit,
-			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.  Default is 'memberId'.")
-			@RequestParam(name = "sortField", required = false, defaultValue = "referencedComponentId") String sortField,
+			@Parameter(description = "Sort field.  Must be one of 'memberId', 'referencedComponentId', 'effectiveTime', 'mapTarget'.")
+			@RequestParam(name = "sortField", required = false) String sortField,
 			@Parameter(description = "ASC for ascending or DESC for descending sort.  Case not important.")
-			@RequestParam(name = "sortOrder", required = false, defaultValue = "desc") String sortOrder,
+			@RequestParam(name = "sortOrder", required = false) String sortOrder,
 			@RequestHeader(value = "Accept-Language", defaultValue = Config.DEFAULT_ACCEPT_LANG_HEADER) String acceptLanguageHeader) {
 
 		ControllerHelper.validatePageSize(offset, limit);
 		branch = BranchPathUriUtil.decodePath(branch);
-		final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+
+		// Use dynamic sort only if BOTH sortField and sortOrder are explicitly provided
+		final PageRequest pageRequest;
+		if (sortField != null && sortOrder != null) {
+			final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+			pageRequest = ControllerHelper.getPageRequest(offset, limit, sort);
+		} else if (sortField != null || sortOrder != null) {
+			throw new IllegalArgumentException("To sort the results, both 'sortField' and 'sortOrder' must be explicitly provided.");
+		} else {
+			pageRequest = ControllerHelper.getPageRequest(offset, limit); // Unsorted fast-path
+		}	
+
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				memberSearchRequest,
-				ControllerHelper.getPageRequest(offset, limit, sort)
+				pageRequest
 		);
+		
 		joinReferencedComponents(members.getContent(), ControllerHelper.parseAcceptLanguageHeaderWithDefaultFallback(acceptLanguageHeader), branch);
 		return new ItemsPage<>(members);
 	}
