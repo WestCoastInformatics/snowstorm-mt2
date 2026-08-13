@@ -164,9 +164,8 @@ public class ReferenceSetMemberController {
 			throw new IllegalArgumentException("To sort the results, both 'sortField' and 'sortOrder' must be explicitly provided.");
 		} else {
 			sort = SORT_BY_MEMBER_ID_DESC;
-		}		
-		
-		final Sort sort = ReferenceSetMemberSort.sort(sortField, sortOrder);
+		}
+
 		Page<ReferenceSetMember> members = memberService.findMembers(
 				branch,
 				new MemberSearchRequest()
